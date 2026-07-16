@@ -1,7 +1,7 @@
 "use client";
 
 import type { Debt, Expense } from "@/lib/types";
-import { formatAmount } from "@/lib/types";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Props {
   debts: Debt[];
@@ -9,6 +9,8 @@ interface Props {
 }
 
 export default function MetricStrip({ debts, expenses }: Props) {
+  const { formatCurrency } = useAuth();
+
   const totalPot = expenses.reduce(
     (sum, e) => sum + parseFloat(e.amount),
     0
@@ -34,7 +36,7 @@ export default function MetricStrip({ debts, expenses }: Props) {
   const metrics = [
     {
       label: "POT TOTAL",
-      value: `$${formatAmount(totalPot)}`,
+      value: formatCurrency(totalPot),
       color: "",
     },
     {
@@ -49,7 +51,7 @@ export default function MetricStrip({ debts, expenses }: Props) {
     },
     {
       label: "OUTSTANDING",
-      value: `$${formatAmount(totalOwed)}`,
+      value: formatCurrency(totalOwed),
       color: totalOwed > 0 ? "text-orange" : "text-green",
     },
     {

@@ -8,6 +8,7 @@ export interface Group {
 export interface Member {
   id: number;
   groupId: number;
+  userId?: number | null;
   name: string;
   wallet: string;
   color: string;

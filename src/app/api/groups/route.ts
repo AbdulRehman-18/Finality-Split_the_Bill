@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { groups, members } from "@/db/schema";
+import { getSessionUser } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
 function generateCode(): string {
@@ -14,24 +15,30 @@ function generateCode(): string {
 
 export async function POST(request: Request) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { name, members: memberList } = body as {
       name: string;
-      members: { name: string; wallet?: string }[];
+      members?: { name: string; wallet?: string }[];
     };
 
-    if (!name || !memberList || memberList.length < 2) {
+    if (!name?.trim()) {
       return NextResponse.json(
-        { error: "Name and at least 2 members required" },
+        { error: "Group name is required" },
         { status: 400 }
       );
     }
 
     const code = generateCode();
 
+    // Create the group
     const [group] = await db
       .insert(groups)
-      .values({ name, code })
+      .values({ name: name.trim(), code })
       .returning();
 
     const colors = [
@@ -44,12 +51,38 @@ export async function POST(request: Request) {
       "#1f9e5c",
     ];
 
-    const memberInserts = memberList.map((m, i) => ({
-      groupId: group.id,
-      name: m.name,
-      wallet: m.wallet || "",
-      color: colors[i % colors.length],
-    }));
+    // The first member is always the creator
+    const memberInserts: {
+      groupId: number;
+      userId: number | null;
+      name: string;
+      wallet: string;
+      color: string;
+    }[] = [
+      {
+        groupId: group.id,
+        userId: currentUser.id,
+        name: currentUser.displayName,
+        wallet: currentUser.wallet || "",
+        color: currentUser.color || colors[0],
+      },
+    ];
+
+    // Add other members if provided
+    if (memberList && memberList.length > 0) {
+      memberList.forEach((m, i) => {
+        // Skip if they somehow provided a member matching the creator's name
+        if (m.name.trim().toLowerCase() === currentUser.displayName.toLowerCase()) return;
+        
+        memberInserts.push({
+          groupId: group.id,
+          userId: null,
+          name: m.name.trim(),
+          wallet: m.wallet || "",
+          color: colors[(i + 1) % colors.length],
+        });
+      });
+    }
 
     await db.insert(members).values(memberInserts);
 
@@ -65,8 +98,25 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const allGroups = await db.select().from(groups).orderBy(groups.createdAt);
-    return NextResponse.json({ groups: allGroups });
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only return groups the user belongs to
+    const userGroups = await db
+      .select({
+        id: groups.id,
+        name: groups.name,
+        code: groups.code,
+        createdAt: groups.createdAt,
+      })
+      .from(groups)
+      .innerJoin(members, eq(members.groupId, groups.id))
+      .where(eq(members.userId, currentUser.id))
+      .orderBy(groups.createdAt);
+
+    return NextResponse.json({ groups: userGroups });
   } catch (error) {
     console.error("Error fetching groups:", error);
     return NextResponse.json(

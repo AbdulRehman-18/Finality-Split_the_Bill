@@ -9,6 +9,18 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 255 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 255 }).notNull(),
+  password: varchar("password", { length: 255 }).notNull(),
+  wallet: varchar("wallet", { length: 255 }).default(""),
+  color: varchar("color", { length: 20 }).default("#3b6fd6"),
+  currency: varchar("currency", { length: 10 }).default("USD").notNull(),
+  theme: varchar("theme", { length: 20 }).default("default").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const groups = pgTable("groups", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -21,6 +33,8 @@ export const members = pgTable("members", {
   groupId: integer("group_id")
     .references(() => groups.id)
     .notNull(),
+  userId: integer("user_id")
+    .references(() => users.id),
   name: varchar("name", { length: 255 }).notNull(),
   wallet: varchar("wallet", { length: 255 }).default(""),
   color: varchar("color", { length: 20 }).default("#3b6fd6"),

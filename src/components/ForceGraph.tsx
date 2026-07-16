@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import type { Member, Debt } from "@/lib/types";
+import { useAuth } from "@/lib/AuthContext";
 
 interface GraphNode {
   id: number;
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function ForceGraph({ members, debts, recentlySettled }: Props) {
+  const { formatCurrency } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nodesRef = useRef<GraphNode[]>([]);
   const linksRef = useRef<GraphLink[]>([]);
@@ -281,9 +283,34 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
 
         const thickness = Math.max(1, Math.min(6, link.amount / 5));
 
+        // Calculate tangent angle at target node
+        const angle = Math.atan2(
+          targetNode.y! - controlY,
+          targetNode.x! - controlX
+        );
+        const arrowTipDist = 23;
+        const arrowLength = 8;
+        const arrowWidth = 5;
+        const baseDist = arrowTipDist + arrowLength;
+        
+        const tanX = Math.cos(angle);
+        const tanY = Math.sin(angle);
+        const normX = -tanY;
+        const normY = tanX;
+
+        const tipX = targetNode.x! - tanX * arrowTipDist;
+        const tipY = targetNode.y! - tanY * arrowTipDist;
+        const baseCenterX = targetNode.x! - tanX * baseDist;
+        const baseCenterY = targetNode.y! - tanY * baseDist;
+        const corner1X = baseCenterX + normX * arrowWidth;
+        const corner1Y = baseCenterY + normY * arrowWidth;
+        const corner2X = baseCenterX - normX * arrowWidth;
+        const corner2Y = baseCenterY - normY * arrowWidth;
+
+        // Draw edge line, terminating at base of arrow
         ctx.beginPath();
         ctx.moveTo(sourceNode.x!, sourceNode.y!);
-        ctx.quadraticCurveTo(controlX, controlY, targetNode.x!, targetNode.y!);
+        ctx.quadraticCurveTo(controlX, controlY, baseCenterX, baseCenterY);
         ctx.strokeStyle = link.settled ? "#1f9e5c" : "#3b6fd6";
         ctx.lineWidth = thickness;
         ctx.globalAlpha = link.settled ? 0.4 : 0.7;
@@ -302,25 +329,13 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
         ctx.font = "600 9px 'IBM Plex Mono', monospace";
         ctx.fillStyle = link.settled ? "#1f9e5c" : "#3b6fd6";
         ctx.textAlign = "center";
-        ctx.fillText(`$${link.amount.toFixed(2)}`, labelX, labelY);
+        ctx.fillText(formatCurrency(link.amount), labelX, labelY);
 
-        // Arrow
-        const angle = Math.atan2(
-          targetNode.y! - controlY,
-          targetNode.x! - controlX
-        );
-        const arrowX = targetNode.x! - Math.cos(angle) * 24;
-        const arrowY = targetNode.y! - Math.sin(angle) * 24;
+        // Arrow (sleek triangular arrowhead)
         ctx.beginPath();
-        ctx.moveTo(arrowX, arrowY);
-        ctx.lineTo(
-          arrowX - Math.cos(angle - 0.4) * 8,
-          arrowY - Math.sin(angle - 0.4) * 8
-        );
-        ctx.lineTo(
-          arrowX - Math.cos(angle + 0.4) * 8,
-          arrowY - Math.sin(angle + 0.4) * 8
-        );
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(corner1X, corner1Y);
+        ctx.lineTo(corner2X, corner2Y);
         ctx.closePath();
         ctx.fillStyle = link.settled ? "#1f9e5c" : "#3b6fd6";
         ctx.globalAlpha = link.settled ? 0.4 : 0.7;

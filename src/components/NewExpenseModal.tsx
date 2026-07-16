@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Member } from "@/lib/types";
 import { CATEGORIES } from "@/lib/types";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Props {
   groupId: number;
@@ -17,10 +18,13 @@ export default function NewExpenseModal({
   onClose,
   onCreated,
 }: Props) {
+  const { user, currencySymbol } = useAuth();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("general");
-  const [paidBy, setPaidBy] = useState<number>(members[0]?.id || 0);
+
+  const currentUserMember = members.find((m) => m.userId === user?.id);
+  const [paidBy, setPaidBy] = useState<number>(currentUserMember?.id || members[0]?.id || 0);
   const [splitAmong, setSplitAmong] = useState<Set<number>>(
     new Set(members.map((m) => m.id))
   );
@@ -91,7 +95,7 @@ export default function NewExpenseModal({
         />
 
         {/* Amount */}
-        <label className="label-caps block mb-1">Amount ($)</label>
+        <label className="label-caps block mb-1">Amount ({currencySymbol})</label>
         <input
           type="number"
           step="0.01"
@@ -128,7 +132,7 @@ export default function NewExpenseModal({
             <button
               key={m.id}
               onClick={() => setPaidBy(m.id)}
-              className="pill transition-all"
+              className="pill transition-all cursor-pointer"
               style={{
                 background:
                   paidBy === m.id ? m.color : "transparent",
@@ -136,7 +140,7 @@ export default function NewExpenseModal({
                 border: `1px solid ${m.color || "#3b6fd6"}`,
               }}
             >
-              {m.name}
+              {m.userId === user?.id ? `${m.name} (You)` : m.name}
             </button>
           ))}
         </div>
@@ -150,7 +154,7 @@ export default function NewExpenseModal({
             <button
               key={m.id}
               onClick={() => toggleMember(m.id)}
-              className="pill transition-all"
+              className="pill transition-all cursor-pointer"
               style={{
                 background: splitAmong.has(m.id)
                   ? (m.color || "#3b6fd6")
@@ -161,7 +165,7 @@ export default function NewExpenseModal({
                 border: `1px solid ${m.color || "#3b6fd6"}`,
               }}
             >
-              {m.name}
+              {m.userId === user?.id ? `${m.name} (You)` : m.name}
             </button>
           ))}
         </div>
@@ -169,10 +173,10 @@ export default function NewExpenseModal({
         {/* Per person */}
         <div className="panel border border-border p-3 mb-6">
           <div className="label-caps mb-1">Per Person Share</div>
-          <div className="font-mono text-xl font-bold">${perPerson}</div>
+          <div className="font-mono text-xl font-bold">{currencySymbol}{perPerson}</div>
           <div className="font-mono text-xs text-muted mt-1">
             {splitAmong.size} {splitAmong.size === 1 ? "person" : "people"} ×
-            ${perPerson} = ${amount || "0.00"}
+            {currencySymbol}{perPerson} = {currencySymbol}{amount || "0.00"}
           </div>
         </div>
 

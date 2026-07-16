@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
 import MetricStrip from "@/components/MetricStrip";
 import DebtList from "@/components/DebtList";
 import ForceGraph from "@/components/ForceGraph";
@@ -10,6 +11,12 @@ import AlertFeed from "@/components/AlertFeed";
 import NewExpenseModal from "@/components/NewExpenseModal";
 import type { Group, Member, Expense, Debt } from "@/lib/types";
 
+interface UnclaimedMember {
+  id: number;
+  name: string;
+  color: string;
+}
+
 export default function GroupDashboard({
   params,
 }: {
@@ -17,11 +24,13 @@ export default function GroupDashboard({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   const [group, setGroup] = useState<Group | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
+  const [isMember, setIsMember] = useState(true);
   const [loading, setLoading] = useState(true);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [settlingId, setSettlingId] = useState<number | null>(null);
@@ -33,6 +42,12 @@ export default function GroupDashboard({
     "network"
   );
 
+  // Join Gate States
+  const [joinCode, setJoinCode] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [unclaimedMembers, setUnclaimedMembers] = useState<UnclaimedMember[]>([]);
+  const [joinError, setJoinError] = useState("");
+
   const fetchData = useCallback(async () => {
     try {
       const res = await fetch(`/api/groups/${id}`);
@@ -42,9 +57,12 @@ export default function GroupDashboard({
         return;
       }
       setGroup(data.group);
-      setMembers(data.members);
-      setExpenses(data.expenses);
-      setDebts(data.debts);
+      setIsMember(data.isMember !== false);
+      if (data.isMember !== false) {
+        setMembers(data.members || []);
+        setExpenses(data.expenses || []);
+        setDebts(data.debts || []);
+      }
     } catch {
       console.error("Failed to fetch group data");
     } finally {
@@ -52,13 +70,31 @@ export default function GroupDashboard({
     }
   }, [id, router]);
 
+  // Auth gate check
   useEffect(() => {
-    fetchData();
-    // Poll every 5s for live updates
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
 
+  // Fetch data on load and poll if member
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user, fetchData]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (user && isMember) {
+      interval = setInterval(fetchData, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [user, isMember, fetchData]);
+
+  // Settle handler
   const handleSettle = async (debtId: number) => {
     setSettlingId(debtId);
     try {
@@ -68,7 +104,6 @@ export default function GroupDashboard({
       const data = await res.json();
       if (!data.error) {
         setRecentlySettled((prev) => new Set([...prev, debtId]));
-        // Clear the animation after 3s
         setTimeout(() => {
           setRecentlySettled((prev) => {
             const next = new Set(prev);
@@ -85,7 +120,63 @@ export default function GroupDashboard({
     }
   };
 
-  if (loading) {
+  // Join Gate Handlers
+  const handleValidateCodeOnly = async () => {
+    if (!joinCode.trim()) return;
+    setJoinLoading(true);
+    setJoinError("");
+    try {
+      const res = await fetch("/api/groups/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: joinCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setJoinError(data.error || "Failed to verify group code.");
+        return;
+      }
+      setUnclaimedMembers(data.unclaimedMembers || []);
+      if (!data.unclaimedMembers || data.unclaimedMembers.length === 0) {
+        // No unclaimed members, join as a new member directly
+        await handleExecuteJoin(undefined, true);
+      }
+    } catch {
+      setJoinError("Network error occurred.");
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  const handleExecuteJoin = async (claimMemberId?: number, joinNew?: boolean) => {
+    setJoinLoading(true);
+    setJoinError("");
+    try {
+      const res = await fetch("/api/groups/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: joinCode.trim() || group?.code, // use explicit code or fall back to known group code if claiming
+          claimMemberId,
+          joinNew,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setIsMember(true);
+        setLoading(true);
+        await fetchData();
+      } else {
+        setJoinError(data.error || "Failed to join group.");
+      }
+    } catch {
+      setJoinError("Network error occurred.");
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -104,10 +195,95 @@ export default function GroupDashboard({
           <div className="font-mono text-sm text-red">GROUP NOT FOUND</div>
           <button
             onClick={() => router.push("/")}
-            className="mt-4 font-mono text-xs text-blue hover:underline"
+            className="mt-4 font-mono text-xs text-blue hover:underline cursor-pointer"
           >
             ← RETURN TO BASE
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Join Gate Render
+  if (!isMember) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="w-full max-w-md panel p-6 sm:p-8 bg-panel relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-red opacity-60" />
+          
+          <h2 className="label-caps text-red mb-3">ACCESS GATED</h2>
+          <p className="font-mono text-2xl font-bold mb-4">Join {group.name}</p>
+          <p className="font-mono text-xs text-muted mb-6 leading-relaxed">
+            You are not currently registered as a member of this operations group. To view the ledger and network dashboard, you must enter this group's access code.
+          </p>
+
+          {joinError && (
+            <div className="panel border-red/40 bg-red/5 p-3 mb-4 text-red font-mono text-xs">
+              {joinError}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="label-caps block mb-1">Group Access Code</label>
+              <input
+                type="text"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                placeholder="e.g. F8D5KW"
+                maxLength={12}
+                className="w-full panel border border-border px-3 py-2 font-mono text-sm outline-none focus:border-ink text-center tracking-widest text-lg font-bold"
+              />
+            </div>
+
+            {unclaimedMembers.length > 0 && (
+              <div className="border-t border-border/40 pt-4">
+                <span className="label-caps block mb-2">Claim Existing Profile Slot</span>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {unclaimedMembers.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => handleExecuteJoin(m.id)}
+                      disabled={joinLoading}
+                      className="panel p-2 text-left border border-border hover:border-ink bg-panel transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                        <span className="font-mono text-[10px] font-bold">{m.name}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleExecuteJoin(undefined, true)}
+                disabled={joinLoading}
+                className="flex-1 bg-ink text-panel font-mono text-xs font-semibold py-2.5 px-4 rounded hover:opacity-90 transition-opacity cursor-pointer uppercase text-center"
+              >
+                {joinLoading ? "JOINING..." : "JOIN AS NEW"}
+              </button>
+              
+              {unclaimedMembers.length === 0 && (
+                <button
+                  onClick={handleValidateCodeOnly}
+                  disabled={joinLoading || !joinCode.trim()}
+                  className="border border-border font-mono text-xs py-2.5 px-4 rounded hover:border-ink transition-colors cursor-pointer uppercase text-center"
+                >
+                  VERIFY CODE
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => router.push("/")}
+              className="w-full text-center font-mono text-xs text-muted hover:text-ink mt-4 block cursor-pointer"
+            >
+              ← RETURN TO BASE
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -120,7 +296,7 @@ export default function GroupDashboard({
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/")}
-            className="font-mono text-xs text-muted hover:text-ink"
+            className="font-mono text-xs text-muted hover:text-ink cursor-pointer"
           >
             ←
           </button>
@@ -141,6 +317,15 @@ export default function GroupDashboard({
           </span>
         </div>
         <div className="flex items-center gap-3">
+          {/* Settings Shortcut */}
+          <button
+            onClick={() => router.push("/settings")}
+            className="font-mono text-xs text-muted hover:text-ink cursor-pointer"
+            title="Settings Center"
+          >
+            ⚙ settings
+          </button>
+
           <span className="font-mono text-[10px] text-muted hidden md:inline">
             {new Date().toLocaleString("en-US", {
               hour: "2-digit",
@@ -151,7 +336,7 @@ export default function GroupDashboard({
           </span>
           <button
             onClick={() => setShowExpenseModal(true)}
-            className="bg-ink text-panel font-mono text-[10px] font-semibold tracking-wider uppercase py-1.5 px-3 rounded hover:opacity-90 transition-opacity"
+            className="bg-ink text-panel font-mono text-[10px] font-semibold tracking-wider uppercase py-1.5 px-3 rounded hover:opacity-90 transition-opacity cursor-pointer"
           >
             + LOG EXPENSE
           </button>

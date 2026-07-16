@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { groups, members, expenses, debts } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { getSessionUser } from "@/lib/auth";
+import { eq, and } from "drizzle-orm";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
-    const groupId = parseInt(id);
+    const groupId = parseInt(id, 10);
+    if (isNaN(groupId)) {
+      return NextResponse.json({ error: "Invalid group ID" }, { status: 400 });
+    }
 
     const [group] = await db
       .select()
@@ -20,6 +29,24 @@ export async function GET(
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
     }
 
+    // Check if the current user is a member of the group
+    const [membership] = await db
+      .select()
+      .from(members)
+      .where(and(eq(members.groupId, groupId), eq(members.userId, currentUser.id)));
+
+    if (!membership) {
+      // User is not a member. Return restricted payload indicating they need to join.
+      return NextResponse.json({
+        group: {
+          id: group.id,
+          name: group.name,
+        },
+        isMember: false,
+      });
+    }
+
+    // User is a member. Fetch full details.
     const groupMembers = await db
       .select()
       .from(members)
@@ -42,6 +69,7 @@ export async function GET(
       members: groupMembers,
       expenses: groupExpenses,
       debts: groupDebts,
+      isMember: true,
     });
   } catch (error) {
     console.error("Error fetching group:", error);

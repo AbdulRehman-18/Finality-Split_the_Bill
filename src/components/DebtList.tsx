@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { Member, Debt, Expense } from "@/lib/types";
-import { formatAmount, timeAgo, getCategoryColor, getCategoryLabel } from "@/lib/types";
+import { timeAgo, getCategoryColor, getCategoryLabel } from "@/lib/types";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Props {
   debts: Debt[];
@@ -19,6 +20,7 @@ export default function DebtList({
   onSettle,
   settlingId,
 }: Props) {
+  const { user, formatCurrency } = useAuth();
   const [tab, setTab] = useState<"debts" | "log">("debts");
 
   const getMember = (id: number) => members.find((m) => m.id === id);
@@ -88,7 +90,7 @@ export default function DebtList({
                               }}
                             />
                             <span className="font-mono text-xs font-semibold truncate">
-                              {debtor?.name || "?"}
+                              {debtor?.userId === user?.id ? `${debtor?.name} (You)` : debtor?.name || "?"}
                             </span>
                             <span className="font-mono text-xs text-muted">
                               →
@@ -101,7 +103,7 @@ export default function DebtList({
                               }}
                             />
                             <span className="font-mono text-xs font-semibold truncate">
-                              {creditor?.name || "?"}
+                              {creditor?.userId === user?.id ? `${creditor?.name} (You)` : creditor?.name || "?"}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -125,7 +127,7 @@ export default function DebtList({
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="font-mono text-sm font-bold text-blue">
-                            ${formatAmount(debt.amount)}
+                            {formatCurrency(debt.amount)}
                           </div>
                           <div className="font-mono text-[10px] text-muted">
                             {timeAgo(debt.createdAt)}
@@ -165,14 +167,14 @@ export default function DebtList({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-xs">
-                              {debtor?.name} → {creditor?.name}
+                              {debtor?.userId === user?.id ? `${debtor?.name} (You)` : debtor?.name} → {creditor?.userId === user?.id ? `${creditor?.name} (You)` : creditor?.name}
                             </span>
                             <span className="pill pill-settled">
                               SETTLED
                             </span>
                           </div>
                           <span className="font-mono text-xs text-green">
-                            ${formatAmount(debt.amount)}
+                            {formatCurrency(debt.amount)}
                           </span>
                         </div>
                       </div>
@@ -209,7 +211,7 @@ export default function DebtList({
                           }}
                         />
                         <span className="font-mono text-xs">
-                          {debtor?.name} → {creditor?.name}
+                          {debtor?.userId === user?.id ? `${debtor?.name} (You)` : debtor?.name} → {creditor?.userId === user?.id ? `${creditor?.name} (You)` : creditor?.name}
                         </span>
                         {debt.settled && (
                           <span className="pill pill-settled">
@@ -225,7 +227,7 @@ export default function DebtList({
                               : "text-blue"
                           }`}
                         >
-                          ${formatAmount(debt.amount)}
+                          {formatCurrency(debt.amount)}
                         </span>
                       </div>
                     </div>
