@@ -1,0 +1,122 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f2ecd8;
+  --color-ink: #1c1c1c;
+  --color-panel: #ffffff;
+  --color-blue: #3b6fd6;
+  --color-green: #1f9e5c;
+  --color-orange: #d98a1f;
+  --color-red: #d6394a;
+  --color-purple: #9b5fd6;
+  --color-magenta: #d63b9e;
+  --color-teal: #1f9e9e;
+  --color-border: #d4cfc0;
+  --color-muted: #8a8475;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: "Inter", ui-sans-serif, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-mono);
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+/* Utility classes */
+.label-caps {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.metric-value {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+.pill-live {
+  background: var(--color-green);
+  color: white;
+}
+
+.pill-pending {
+  background: var(--color-blue);
+  color: white;
+}
+
+.pill-overdue {
+  background: var(--color-orange);
+  color: white;
+}
+
+.pill-critical {
+  background: var(--color-red);
+  color: white;
+}
+
+.pill-settled {
+  background: #e8f5e9;
+  color: var(--color-green);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes settle-pulse {
+  0% { stroke-opacity: 1; stroke-width: 6; }
+  100% { stroke-opacity: 0; stroke-width: 20; }
+}
