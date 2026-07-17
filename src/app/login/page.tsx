@@ -18,7 +18,7 @@ export default function LoginPage() {
   // If already logged in, redirect to home
   useEffect(() => {
     if (!loading && user) {
-      router.push("/");
+      router.push("/dashboard");
     }
   }, [user, loading, router]);
 
@@ -43,14 +43,14 @@ export default function LoginPage() {
       if (isLogin) {
         const res = await login(username, password);
         if (res.success) {
-          router.push("/");
+          router.push("/dashboard");
         } else {
           setError(res.error || "Authentication failed.");
         }
       } else {
         const res = await signup(username, displayName, password);
         if (res.success) {
-          router.push("/");
+          router.push("/dashboard");
         } else {
           setError(res.error || "Account creation failed.");
         }

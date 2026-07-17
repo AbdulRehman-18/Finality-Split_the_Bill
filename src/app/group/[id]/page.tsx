@@ -82,7 +82,7 @@ export default function GroupDashboard({
       const res = await fetch(`/api/groups/${id}`);
       const data = await res.json();
       if (data.error) {
-        router.push("/");
+        router.push("/dashboard");
         return;
       }
       setGroup(data.group);
@@ -223,7 +223,7 @@ export default function GroupDashboard({
         <div className="text-center">
           <div className="font-mono text-sm text-red">GROUP NOT FOUND</div>
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
             className="mt-4 font-mono text-xs text-blue hover:underline cursor-pointer"
           >
             ← RETURN TO BASE
@@ -307,7 +307,7 @@ export default function GroupDashboard({
             </div>
 
             <button
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/dashboard")}
               className="w-full text-center font-mono text-xs text-muted hover:text-ink mt-4 block cursor-pointer"
             >
               ← RETURN TO BASE
@@ -324,7 +324,7 @@ export default function GroupDashboard({
       <header className="border-b border-border px-4 py-2 flex items-center justify-between bg-panel flex-shrink-0">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
             className="font-mono text-xs text-muted hover:text-ink cursor-pointer"
           >
             ←

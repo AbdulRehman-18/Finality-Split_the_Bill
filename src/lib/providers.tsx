@@ -34,7 +34,7 @@ const monadTestnet = defineChain({
 
 const config = getDefaultConfig({
   appName: "Ledger Watch",
-  projectId: "LEDGER_WATCH_PROJECT_ID",
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "LEDGER_WATCH_PROJECT_ID",
   chains: [monadTestnet],
   ssr: true,
 });

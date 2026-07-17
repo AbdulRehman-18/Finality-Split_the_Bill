@@ -179,7 +179,7 @@ export default function SettingsPage() {
       <header className="border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between bg-panel sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/dashboard")}
             className="font-mono text-xs text-muted hover:text-ink flex items-center gap-1 cursor-pointer"
           >
             ← BACK
