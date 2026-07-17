@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, CURRENCIES } from "@/lib/AuthContext";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface Team {
   id: number;
@@ -239,8 +240,16 @@ export default function SettingsPage() {
                   />
                 </div>
 
+                <div className="flex items-center justify-between mb-4 border border-border p-3 rounded bg-bg/30">
+                  <div>
+                    <label className="label-caps block mb-1">Web3 Wallet</label>
+                    <div className="font-mono text-[9px] text-muted">Connect wallet for on-chain ops</div>
+                  </div>
+                  <ConnectButton showBalance={false} chainStatus="none" accountStatus="avatar" />
+                </div>
+
                 <div>
-                  <label className="label-caps block mb-1">Wallet Address / Public Key</label>
+                  <label className="label-caps block mb-1">Wallet Address (Fallback / Manual)</label>
                   <input
                     type="text"
                     value={wallet}

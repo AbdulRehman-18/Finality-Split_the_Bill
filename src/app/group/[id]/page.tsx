@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, use } from "react";
+import { useState, useEffect, useCallback, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { parseEther } from "viem";
+import { useOnchainDebts } from "@/lib/useOnchainDebts";
 import MetricStrip from "@/components/MetricStrip";
 import DebtList from "@/components/DebtList";
 import ForceGraph from "@/components/ForceGraph";
@@ -30,6 +32,33 @@ export default function GroupDashboard({
   const [members, setMembers] = useState<Member[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
+  const { onchainDebts } = useOnchainDebts();
+  
+  const mappedDebts = useMemo(() => {
+    const availableOnchain = [...onchainDebts];
+    return debts.map((dbDebt) => {
+      const debtor = members.find((m) => m.id === dbDebt.debtorId);
+      const creditor = members.find((m) => m.id === dbDebt.creditorId);
+      
+      const matchIndex = availableOnchain.findIndex(od => 
+        debtor?.wallet && creditor?.wallet &&
+        od.debtor.toLowerCase() === debtor.wallet.toLowerCase() &&
+        od.creditor.toLowerCase() === creditor.wallet.toLowerCase() &&
+        od.amount === parseEther(dbDebt.amount)
+      );
+
+      if (matchIndex !== -1) {
+        const match = availableOnchain.splice(matchIndex, 1)[0];
+        return {
+          ...dbDebt,
+          onchainId: match.id,
+          settled: match.settled,
+        };
+      }
+      return dbDebt;
+    });
+  }, [debts, onchainDebts, members]);
+
   const [isMember, setIsMember] = useState(true);
   const [loading, setLoading] = useState(true);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -326,6 +355,7 @@ export default function GroupDashboard({
             ⚙ settings
           </button>
 
+
           <span className="font-mono text-[10px] text-muted hidden md:inline">
             {new Date().toLocaleString("en-US", {
               hour: "2-digit",
@@ -344,7 +374,7 @@ export default function GroupDashboard({
       </header>
 
       {/* Metric Strip */}
-      <MetricStrip debts={debts} expenses={expenses} />
+      <MetricStrip debts={mappedDebts} expenses={expenses} />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
@@ -353,7 +383,7 @@ export default function GroupDashboard({
           activeTab === "debts" ? "flex" : "hidden lg:flex"
         }`}>
           <DebtList
-            debts={debts}
+            debts={mappedDebts}
             expenses={expenses}
             members={members}
             onSettle={handleSettle}
@@ -391,7 +421,7 @@ export default function GroupDashboard({
             {members.length > 0 ? (
               <ForceGraph
                 members={members}
-                debts={debts}
+                debts={mappedDebts}
                 recentlySettled={recentlySettled}
               />
             ) : (
@@ -433,10 +463,10 @@ export default function GroupDashboard({
           </div>
           <div className="flex-1 overflow-y-auto">
             {rightTab === "stats" ? (
-              <LedgerStats members={members} debts={debts} />
+              <LedgerStats members={members} debts={mappedDebts} />
             ) : (
               <AlertFeed
-                debts={debts}
+                debts={mappedDebts}
                 members={members}
                 expenses={expenses}
               />
@@ -455,7 +485,7 @@ export default function GroupDashboard({
               : "border-t-transparent text-muted hover:text-ink"
           }`}
         >
-          Debts ({debts.filter((d) => !d.settled).length})
+          Debts ({mappedDebts.filter((d) => !d.settled).length})
         </button>
         <button
           onClick={() => setActiveTab("network")}
@@ -486,8 +516,8 @@ export default function GroupDashboard({
             {members.length} OPERATORS
           </span>
           <span className="label-caps hidden sm:inline">
-            {debts.filter((d) => !d.settled).length} ACTIVE ·{" "}
-            {debts.filter((d) => d.settled).length} SETTLED
+            {mappedDebts.filter((d) => !d.settled).length} ACTIVE ·{" "}
+            {mappedDebts.filter((d) => d.settled).length} SETTLED
           </span>
         </div>
         <span className="label-caps hidden md:inline">

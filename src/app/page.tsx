@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-
 interface Group {
   id: number;
   name: string;
@@ -208,7 +207,8 @@ export default function Home() {
           >
             ⚙
           </button>
-          
+
+
           <button
             onClick={async () => {
               await logout();

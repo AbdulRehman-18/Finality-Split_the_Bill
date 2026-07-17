@@ -32,6 +32,7 @@ export interface Debt {
   debtorId: number;
   creditorId: number;
   amount: string;
+  onchainId?: number | null;
   settled: boolean;
   settledAt: string | null;
   createdAt: string;
