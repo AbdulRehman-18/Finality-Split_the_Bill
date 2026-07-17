@@ -174,10 +174,13 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="border-b border-border px-4 sm:px-6 py-3 flex items-center justify-between bg-panel sticky top-0 z-10">
-        <div className="flex items-center gap-3">
+        <div
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-all"
+        >
           <div className="w-2 h-2 rounded-full bg-green" />
           <h1 className="font-mono text-sm font-bold tracking-widest uppercase">
-            Ledger Watch
+            Finality
           </h1>
           <span className="pill pill-live">
             <span className="live-dot" />
@@ -461,7 +464,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border px-4 sm:px-6 py-3 flex items-center justify-between bg-panel">
         <span className="label-caps">
-          Ledger Watch v1.0
+          Finality v1.0
         </span>
         <span className="label-caps hidden xs:inline">
           ALL SYSTEMS NOMINAL

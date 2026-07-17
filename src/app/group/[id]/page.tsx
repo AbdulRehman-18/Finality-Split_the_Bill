@@ -329,14 +329,19 @@ export default function GroupDashboard({
           >
             ←
           </button>
-          <div className="w-2 h-2 rounded-full bg-green" />
-          <h1 className="font-mono text-xs font-bold tracking-widest uppercase">
-            Ledger Watch
-          </h1>
-          <span className="pill pill-live">
-            <span className="live-dot" />
-            LIVE
-          </span>
+          <div
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-all"
+          >
+            <div className="w-2 h-2 rounded-full bg-green" />
+            <h1 className="font-mono text-xs font-bold tracking-widest uppercase">
+              Finality
+            </h1>
+            <span className="pill pill-live">
+              <span className="live-dot" />
+              LIVE
+            </span>
+          </div>
           <span className="font-mono text-xs text-muted hidden sm:inline">|</span>
           <span className="font-mono text-xs font-semibold hidden sm:inline">
             {group.name}
@@ -348,7 +353,7 @@ export default function GroupDashboard({
         <div className="flex items-center gap-3">
           {/* Settings Shortcut */}
           <button
-            onClick={() => router.push("/settings")}
+            onClick={() => router.push(`/settings?from=/group/${group.id}&groupId=${group.id}`)}
             className="font-mono text-xs text-muted hover:text-ink cursor-pointer"
             title="Settings Center"
           >
