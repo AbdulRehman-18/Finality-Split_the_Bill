@@ -134,11 +134,16 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
     const centerY = h / 2;
 
     nodesRef.current.forEach((node, i) => {
-      if (node.x === undefined) {
-        const angle = (2 * Math.PI * i) / nodesRef.current.length;
-        const radius = Math.min(w, h) * 0.25;
-        node.x = centerX + Math.cos(angle) * radius;
-        node.y = centerY + Math.sin(angle) * radius;
+      if (node.x === undefined || node.y === undefined || (node.x <= 45 && node.y <= 45 && w > 100)) {
+        if (nodesRef.current.length === 1) {
+          node.x = centerX;
+          node.y = centerY;
+        } else {
+          const angle = (2 * Math.PI * i) / nodesRef.current.length;
+          const radius = Math.min(w, h) * 0.25;
+          node.x = centerX + Math.cos(angle) * radius;
+          node.y = centerY + Math.sin(angle) * radius;
+        }
       }
     });
 
@@ -152,6 +157,37 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
 
       const cw = canvas.width / pixelRatio;
       const ch = canvas.height / pixelRatio;
+
+      // Get active theme colors from CSS & data-theme attribute
+      const themeAttr = document.documentElement.getAttribute("data-theme") || "default";
+      let themeInk = "#1c1c1c";
+      let themePanel = "#ffffff";
+      let themeBorder = "#d4cfc0";
+
+      if (themeAttr === "dark-retro") {
+        themeInk = "#ebdcb9";
+        themePanel = "#1e1c16";
+        themeBorder = "#3b372f";
+      } else if (themeAttr === "modern-dark") {
+        themeInk = "#f8fafc";
+        themePanel = "#1e293b";
+        themeBorder = "#334155";
+      } else if (themeAttr === "cyber-neon") {
+        themeInk = "#39ff14";
+        themePanel = "#0a0f10";
+        themeBorder = "#143015";
+      } else {
+        const rootStyle = getComputedStyle(document.documentElement);
+        themeInk = rootStyle.getPropertyValue("--color-ink").trim() || themeInk;
+        themePanel = rootStyle.getPropertyValue("--color-panel").trim() || themePanel;
+        themeBorder = rootStyle.getPropertyValue("--color-border").trim() || themeBorder;
+      }
+
+      // Re-center single or uninitialized nodes if canvas size settled
+      if (nodes.length === 1 && nodes[0]) {
+        nodes[0].x = cw / 2;
+        nodes[0].y = ch / 2;
+      }
 
       // Simple force simulation
       const alpha = 0.3;
@@ -233,8 +269,9 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
       ctx.clearRect(0, 0, cw, ch);
 
       // Grid lines
-      ctx.strokeStyle = "#e8e2d0";
+      ctx.strokeStyle = themeBorder;
       ctx.lineWidth = 0.5;
+      ctx.globalAlpha = 0.35;
       for (let x = 0; x < cw; x += 40) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -247,6 +284,8 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
         ctx.lineTo(cw, y);
         ctx.stroke();
       }
+      ctx.globalAlpha = 1;
+
 
       // Draw edges
       links.forEach((link) => {
@@ -334,10 +373,24 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
         const labelX = curveMidX + normalX * labelShift;
         const labelY = curveMidY + normalY * labelShift;
 
+        // Edge label pill box
+        const edgeText = formatCurrency(link.amount);
         ctx.font = "600 9px 'IBM Plex Mono', monospace";
+        const edgeTextWidth = ctx.measureText(edgeText).width;
+        const edgePillW = edgeTextWidth + 10;
+        const edgePillH = 16;
+        ctx.beginPath();
+        ctx.fillStyle = themePanel;
+        ctx.strokeStyle = link.settled ? "#1f9e5c" : "#3b6fd6";
+        ctx.lineWidth = 1;
+        ctx.rect(labelX - edgePillW / 2, labelY - edgePillH / 2, edgePillW, edgePillH);
+        ctx.fill();
+        ctx.stroke();
+
         ctx.fillStyle = link.settled ? "#1f9e5c" : "#3b6fd6";
         ctx.textAlign = "center";
-        ctx.fillText(formatCurrency(link.amount), labelX, labelY);
+        ctx.textBaseline = "middle";
+        ctx.fillText(edgeText, labelX, labelY);
 
         // Arrow (sleek triangular arrowhead)
         ctx.beginPath();
@@ -420,27 +473,60 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
       nodes.forEach((node) => {
         if (node.x === undefined || node.y === undefined) return;
 
-        // Node circle
+        const nodeColor = node.color || themeInk;
+
+        // Subtle outer glow halo
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 18, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
+        ctx.arc(node.x, node.y, 22, 0, Math.PI * 2);
+        ctx.fillStyle = nodeColor;
+        ctx.globalAlpha = 0.15;
         ctx.fill();
-        ctx.strokeStyle = node.color;
+        ctx.globalAlpha = 1;
+
+        // Node circle background
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 16, 0, Math.PI * 2);
+        ctx.fillStyle = themePanel;
+        ctx.fill();
+        ctx.strokeStyle = nodeColor;
         ctx.lineWidth = 2.5;
         ctx.stroke();
 
         // Inner dot
         ctx.beginPath();
         ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = node.color;
+        ctx.fillStyle = nodeColor;
         ctx.fill();
 
-        // Name label
-        ctx.font = "600 10px 'IBM Plex Mono', monospace";
+        // Name badge pill box
+        const text = node.name;
+        ctx.font = "600 11px 'IBM Plex Mono', monospace";
+        const textWidth = ctx.measureText(text).width;
+        const pillW = textWidth + 16;
+        const pillH = 20;
+        const pillX = node.x - pillW / 2;
+        const pillY = node.y + 24;
+
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+        } else {
+          ctx.rect(pillX, pillY, pillW, pillH);
+        }
+        ctx.fillStyle = themePanel;
+        ctx.fill();
+        ctx.strokeStyle = themeBorder;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Name text inside pill
         ctx.textAlign = "center";
-        ctx.fillStyle = "#1c1c1c";
-        ctx.fillText(node.name, node.x, node.y + 30);
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = themeInk;
+        ctx.fillText(text, node.x, pillY + pillH / 2);
       });
+
+
 
       if (animationRunningRef.current) {
         animRef.current = requestAnimationFrame(tick);

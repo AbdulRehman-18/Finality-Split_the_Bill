@@ -186,66 +186,73 @@ html, body {
 }
 
 .marketing-theme {
-  --color-bg: #0e0e0e;
-  --color-ink: #f0f4f5;
-  --color-panel: #1a1a1a;
-  --color-border: rgba(240, 244, 245, 0.12);
-  --color-muted: #b8c0c2;
-  --color-blue: #3b6fd6;
-  --color-green: #1f9e5c;
-  --color-orange: #d98a1f;
-  --color-red: #cc001e;
+  --color-bg: #151410;
+  --color-ink: #ebdcb9;
+  --color-panel: #1e1c16;
+  --color-border: #3b372f;
+  --color-muted: #807765;
+  --color-blue: #5487eb;
+  --color-green: #2ecc71;
+  --color-orange: #f39c12;
+  --color-red: #e74c3c;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-15px) rotate(1deg); }
-}
 @keyframes pulse-slow {
   0%, 100% { opacity: 0.15; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(1.05); }
+  50% { opacity: 0.3; transform: scale(1.03); }
 }
-@keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(30px); }
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes glowing {
-  0% { box-shadow: 0 0 5px rgba(204,0,30,0.2), 0 0 20px rgba(204,0,30,0.2); }
-  50% { box-shadow: 0 0 20px rgba(204,0,30,0.6), 0 0 50px rgba(204,0,30,0.4); }
-  100% { box-shadow: 0 0 5px rgba(204,0,30,0.2), 0 0 20px rgba(204,0,30,0.2); }
-}
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
-.animate-float {
-  animation: float 8s ease-in-out infinite;
-}
 .animate-pulse-slow {
-  animation: pulse-slow 6s ease-in-out infinite;
+  animation: pulse-slow 8s ease-in-out infinite;
 }
-.animate-fade-in-up {
-  animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-fade-in {
+  animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.animate-fade-in-up-1 {
-  animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
-  opacity: 0;
+
+.animate-ticker {
+  display: flex;
+  width: max-content;
+  animation: ticker 40s linear infinite;
 }
-.animate-fade-in-up-2 {
-  animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
-  opacity: 0;
+.animate-ticker:hover {
+  animation-play-state: paused;
 }
-.animate-fade-in-up-3 {
-  animation: fade-in-up 1s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
-  opacity: 0;
+
+/* Dashboard-Driven Minimal Utilities */
+.dashboard-border {
+  border: 1px solid var(--color-border);
 }
-.animate-glow {
-  animation: glowing 3s infinite;
+
+.dashboard-panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
 }
-.animate-gradient-shift {
-  background-size: 200% 200%;
-  animation: gradient-shift 8s ease infinite;
+
+.dashboard-hover {
+  transition: all 0.2s ease;
 }
+.dashboard-hover:hover {
+  border-color: var(--color-ink);
+  transform: translateY(-1px);
+}
+
+/* Range Input styled with dashboard ink color */
+input[type="range"] {
+  accent-color: var(--color-red);
+}
+
+
+
 
