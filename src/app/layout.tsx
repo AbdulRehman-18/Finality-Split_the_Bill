@@ -44,10 +44,10 @@ export const metadata: Metadata = {
     siteName: "Tally Protocol",
     images: [
       {
-        url: "/logo.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Tally Protocol — Onchain Debt Surveillance Dashboard",
+        alt: "Tally Protocol — Every debt. Watched. Until it's paid.",
       },
     ],
     locale: "en_US",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     title: "Tally — Every debt. Watched. Until it's paid.",
     description:
       "Continuous topological debt graph rebalancing with instant sub-second Monad EVM micro-settlements.",
-    images: ["/logo.png"],
+    images: ["/og-image.png"],
     creator: "@synore_in",
   },
   robots: {
@@ -90,7 +90,7 @@ const jsonLd = {
   },
   description:
     "Tally turns group expenses into an interactive live debt graph with parallel topological rebalancing and instant Monad EVM micro-settlements.",
-  image: "https://tally.synore.in/logo.png",
+  image: "https://tally.synore.in/og-image.png",
   url: "https://tally.synore.in",
   author: {
     "@type": "Organization",
@@ -98,6 +98,7 @@ const jsonLd = {
     url: "https://tally.synore.in",
   },
 };
+
 
 
 export default function RootLayout({ children }: { children: ReactNode }) {
