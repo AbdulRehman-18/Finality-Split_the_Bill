@@ -42,6 +42,8 @@ export default function GroupDashboard({
   const [activeTab, setActiveTab] = useState<"network" | "debts" | "engine">(
     "network"
   );
+  const [graphViewMode, setGraphViewMode] = useState<"net" | "detailed">("net");
+  const [graphHideSettled, setGraphHideSettled] = useState(true);
 
   // Join Gate States
   const [joinCode, setJoinCode] = useState("");
@@ -404,26 +406,51 @@ export default function GroupDashboard({
         <div className={`flex-1 flex flex-col overflow-hidden ${
           activeTab === "network" ? "flex" : "hidden lg:flex"
         }`}>
-          <div className="px-4 py-2 border-b border-border flex items-center justify-between bg-panel/50">
+          <div className="px-4 py-2 border-b border-border flex items-center justify-between bg-panel/50 flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <span className="label-caps">Debt Network</span>
-              <span className="font-mono text-[10px] text-muted">
+              <span className="font-mono text-[10px] text-muted hidden sm:inline">
                 {members.length} NODES · {debts.length} EDGES
               </span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-0.5 bg-blue rounded" />
-                <span className="font-mono text-[10px] text-muted">
-                  PENDING
-                </span>
+            <div className="flex items-center gap-2">
+              {/* Sleek Mode Segment */}
+              <div className="flex items-center bg-bg/80 p-0.5 rounded border border-border">
+                <button
+                  onClick={() => setGraphViewMode("net")}
+                  className={`px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider rounded transition-colors cursor-pointer ${
+                    graphViewMode === "net"
+                      ? "bg-ink text-panel"
+                      : "text-muted hover:text-ink"
+                  }`}
+                  title="Consolidated Net Obligations"
+                >
+                  NET VIEW
+                </button>
+                <button
+                  onClick={() => setGraphViewMode("detailed")}
+                  className={`px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider rounded transition-colors cursor-pointer ${
+                    graphViewMode === "detailed"
+                      ? "bg-ink text-panel"
+                      : "text-muted hover:text-ink"
+                  }`}
+                  title="All Transactions"
+                >
+                  ALL DEBTS
+                </button>
               </div>
-              <div className="flex items-center gap-1">
-                <span className="w-3 h-0.5 bg-green rounded" />
-                <span className="font-mono text-[10px] text-muted">
-                  SETTLED
-                </span>
-              </div>
+
+              {/* Hide Settled Toggle */}
+              <button
+                onClick={() => setGraphHideSettled(!graphHideSettled)}
+                className={`px-2 py-0.5 font-mono text-[10px] font-semibold border rounded transition-colors cursor-pointer ${
+                  graphHideSettled
+                    ? "border-green/40 bg-green/10 text-green"
+                    : "border-border text-muted hover:text-ink"
+                }`}
+              >
+                {graphHideSettled ? "✓ HIDE SETTLED" : "SHOW SETTLED"}
+              </button>
             </div>
           </div>
           <div className="flex-1 relative">
@@ -432,6 +459,8 @@ export default function GroupDashboard({
                 members={members}
                 debts={debts}
                 recentlySettled={recentlySettled}
+                viewMode={graphViewMode}
+                hideSettled={graphHideSettled}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
