@@ -130,15 +130,19 @@ export default function LandingPage() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-          {/* Logo (Clean TALLY, no surveillance text) */}
+          {/* Logo (Clean TALLY with logo image) */}
           <Link href="/dashboard" className="flex items-center gap-2.5 sm:gap-3 group">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#1e1c16] border border-[#3b372f] flex items-center justify-center shadow-inner flex-shrink-0">
-              <span className="w-2 h-2 rounded-full bg-[#e74c3c] animate-pulse" />
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Tally Logo"
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg object-contain flex-shrink-0 bg-[#1e1c16] border border-[#3b372f] p-0.5 shadow-sm"
+            />
             <span className="font-bold tracking-widest text-sm sm:text-base text-[#ebdcb9] uppercase">
               TALLY
             </span>
           </Link>
+
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8 text-xs text-[#807765] tracking-widest uppercase font-semibold">
