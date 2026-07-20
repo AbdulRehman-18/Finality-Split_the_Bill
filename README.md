@@ -1,4 +1,4 @@
-# FINALITY
+# TALLY
 
 ```text
   ___ ___ _  _   _   _    ___ _____   __
@@ -19,7 +19,7 @@
 
 ## 📡 Live Feed Operations
 
-Group expenses don't just get tracked here. They get monitored. **Finality** turns the passive, forgotten "I'll pay you back" into a live operational control room feed: every debt logged, every wallet balance graphed, and every settlement finalized onchain the moment it happens.
+Group expenses don't just get tracked here. They get monitored. **Tally** turns the passive, forgotten "I'll pay you back" into a live operational control room feed: every debt logged, every wallet balance graphed, and every settlement finalized onchain the moment it happens.
 
 No spreadsheets. No pooled escrow. No trust required—the contract enforces the exact amount, and money moves directly between the two wallets involved.
 
@@ -29,7 +29,7 @@ No spreadsheets. No pooled escrow. No trust required—the contract enforces the
 
 Below is the live operational feed and force-directed debt network tracking credit vectors:
 
-![Finality Dashboard Console](public/dashboard.png)
+![Tally Dashboard Console](public/dashboard.png)
 *Figure 1.0: Real-time surveillance grid mapping wallet nodes (participants) and active debt relationships (edges).*
 
 > [!TIP]
@@ -52,7 +52,7 @@ Below is the live operational feed and force-directed debt network tracking cred
 
 ## 🛠️ System Architecture
 
-Finality utilizes a hybrid synchronization model:
+Tally utilizes a hybrid synchronization model:
 1. **Off-chain Cache**: A local Postgres instance synchronized via Drizzle ORM indexes metadata, groups, and membership.
 2. **Onchain Settlement**: The `LedgerWatch` smart contract acts as the source of truth for debt status and wallet-to-wallet transfers.
 
@@ -183,9 +183,9 @@ Block Explorer:    https://testnet.monadexplorer.com
 
 ---
 
-## ⚖️ Finality Comparison Matrix
+## ⚖️ Tally Comparison Matrix
 
-| Feature | Finality | Traditional Apps (Splitwise, etc.) | Custodial Pools |
+| Feature | Tally | Traditional Apps (Splitwise, etc.) | Custodial Pools |
 |---|---|---|---|
 | **Settlement Speed** | Instantaneous (Monad block time) | Delayed (Days via Bank / Manual log) | Slow (Escrow unlocking steps) |
 | **Funds Custody** | **None** (Direct wallet-to-wallet transfer) | None (IOU tracking only, no payment) | Escrowed (High risk of pool hacks) |
@@ -194,4 +194,4 @@ Block Explorer:    https://testnet.monadexplorer.com
 
 ---
 
-*Finality. Built for tonight's dinner bill, verified onchain forever.*
+*Tally. Built for tonight's dinner bill, verified onchain forever.*

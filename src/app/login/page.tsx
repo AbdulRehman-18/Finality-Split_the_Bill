@@ -79,7 +79,7 @@ export default function LoginPage() {
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-orange animate-pulse" />
           <h1 className="font-mono text-sm font-bold tracking-widest uppercase">
-            Finality
+            Tally
           </h1>
           <span className="pill pill-overdue">SECURE GATEWAY</span>
         </div>

@@ -5,7 +5,7 @@ import { Providers } from "@/lib/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FINALITY — Split the Bill",
+  title: "TALLY — Split the Bill",
   description: "Split expenses, track debts, settle up. Ops-center style.",
 };
 

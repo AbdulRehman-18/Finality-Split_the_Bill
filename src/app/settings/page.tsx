@@ -407,7 +407,7 @@ export default function SettingsPage() {
           >
             <div className="w-2 h-2 rounded-full bg-green" />
             <h1 className="font-mono text-xs font-bold tracking-widest uppercase">
-              Finality
+              Tally
             </h1>
           </div>
           <span className="font-mono text-xs text-muted">|</span>

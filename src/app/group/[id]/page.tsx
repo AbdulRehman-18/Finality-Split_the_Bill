@@ -339,7 +339,7 @@ export default function GroupDashboard({
           >
             <div className="w-2 h-2 rounded-full bg-green" />
             <h1 className="font-mono text-xs font-bold tracking-widest uppercase">
-              Finality
+              Tally
             </h1>
             <span className="pill pill-live">
               <span className="live-dot" />

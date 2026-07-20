@@ -180,7 +180,7 @@ export default function Home() {
         >
           <div className="w-2 h-2 rounded-full bg-green" />
           <h1 className="font-mono text-sm font-bold tracking-widest uppercase">
-            Finality
+            Tally
           </h1>
           <span className="pill pill-live">
             <span className="live-dot" />
@@ -476,7 +476,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border px-4 sm:px-6 py-3 flex items-center justify-between bg-panel">
         <span className="label-caps">
-          Finality v1.0
+          Tally v1.0
         </span>
         <span className="label-caps hidden xs:inline">
           ALL SYSTEMS NOMINAL

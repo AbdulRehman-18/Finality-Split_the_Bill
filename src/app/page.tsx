@@ -33,7 +33,7 @@ export default function LandingPage() {
         <Link href="/dashboard" className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-all">
           <div className="w-2 h-2 rounded-full bg-red animate-pulse" />
           <span className="font-mono text-sm font-bold tracking-widest uppercase text-white">
-            Finality
+            Tally
           </span>
         </Link>
         
@@ -84,7 +84,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-muted text-lg md:text-xl max-w-2xl leading-relaxed mb-12 animate-fade-in-up-2">
-            Finality turns group expenses into a live dashboard instead of a forgotten IOU. Track balances, settle in the shared ledger, and use blockchain only when you choose.
+            Tally turns group expenses into a live dashboard instead of a forgotten IOU. Track balances, settle in the shared ledger, and use blockchain only when you choose.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-20 animate-fade-in-up-3">
@@ -227,7 +227,7 @@ export default function LandingPage() {
               {/* New way */}
               <div className="p-8 border border-red/30 rounded-lg bg-bg flex flex-col h-full relative overflow-hidden shadow-[0_0_40px_rgba(204,0,30,0.05)]">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-red/10 blur-3xl rounded-full pointer-events-none" />
-                <span className="font-mono text-xs uppercase tracking-widest text-white mb-8 relative z-10">The Finality Way</span>
+              <span className="font-mono text-xs uppercase tracking-widest text-white mb-8 relative z-10">The Tally Way</span>
                 <div className="flex-1 flex items-center justify-center relative z-10 w-full">
                   <div className="w-full text-ink font-sans rounded shadow-xl overflow-hidden" style={dashboardThemeVars}>
                     <div className="grid grid-cols-2 lg:flex lg:items-stretch border border-border bg-panel text-left">
@@ -461,7 +461,7 @@ export default function LandingPage() {
                   <div className="flex items-center gap-3">
                     <button className="font-mono text-xs text-muted">←</button>
                     <div className="w-2 h-2 rounded-full bg-[#1f9e5c]" />
-                    <h1 className="font-mono text-xs font-bold tracking-widest uppercase">Finality</h1>
+                    <h1 className="font-mono text-xs font-bold tracking-widest uppercase">Tally</h1>
                     <span className="pill pill-live"><span className="live-dot" />LIVE</span>
                     <span className="font-mono text-xs text-muted hidden sm:inline">|</span>
                     <span className="font-mono text-xs font-semibold hidden sm:inline">Hackathon Crew</span>
@@ -671,7 +671,7 @@ export default function LandingPage() {
                 Trustless by design.
               </h2>
               <p className="text-muted text-base leading-relaxed mb-6">
-                We believe financial ledgers shouldn't require blind faith. Finality operates with absolutely no custodial pools. Every transaction routes securely from your wallet directly to the recipient's wallet through our verified smart contract.
+                We believe financial ledgers shouldn't require blind faith. Tally operates with absolutely no custodial pools. Every transaction routes securely from your wallet directly to the recipient's wallet through our verified smart contract.
               </p>
               <p className="text-muted text-base leading-relaxed">
                 The code is completely open source and the contract address is publicly verifiable on the Monad testnet explorer.
@@ -684,7 +684,7 @@ export default function LandingPage() {
                   <svg viewBox="0 0 24 24" className="w-8 h-8 fill-white" aria-hidden="true">
                     <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.379.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z" />
                   </svg>
-                  <span className="font-mono font-bold text-white text-base">finality-app</span>
+                  <span className="font-mono font-bold text-white text-base">tally-app</span>
                 </div>
                 <p className="text-muted text-sm mb-8 leading-relaxed">
                   Read the code yourself &mdash; nothing hidden. Fully transparent ops center.
@@ -733,7 +733,7 @@ export default function LandingPage() {
         <div className="flex items-center gap-3 mb-6 md:mb-0">
           <div className="w-1.5 h-1.5 rounded-full bg-red" />
           <span className="font-mono text-xs font-bold tracking-widest uppercase text-white">
-            Finality
+            Tally
           </span>
         </div>
         
