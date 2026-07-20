@@ -83,7 +83,7 @@ export default function LoginPage() {
           </h1>
           <span className="pill pill-overdue">SECURE GATEWAY</span>
         </div>
-        <span className="label-caps hidden sm:inline">OFFLINE MODE</span>
+        <span className="label-caps hidden sm:inline">SECURE MODE</span>
       </header>
 
       {/* Main Container */}
