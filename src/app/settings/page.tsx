@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, CURRENCIES } from "@/lib/AuthContext";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface Team {
   id: number;
@@ -236,6 +235,32 @@ export default function SettingsPage() {
     }
   };
 
+  const handleDeleteGroup = async () => {
+    if (!selectedGroupId || !groupData?.canDelete) return;
+    const groupName = groupData.group?.name || "this group";
+    if (!confirm(`Permanently delete ${groupName} and all of its ledger data? This cannot be undone.`)) {
+      return;
+    }
+
+    setGroupSettingsError("");
+    setGroupSettingsSuccess("");
+    setGroupLoading(true);
+    try {
+      const res = await fetch(`/api/groups/${selectedGroupId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setGroupSettingsError(data.error || "Failed to delete group");
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch {
+      setGroupSettingsError("Network error occurred");
+    } finally {
+      setGroupLoading(false);
+    }
+  };
+
   const handleAddMember = async () => {
     if (!selectedGroupId || !newMemberName.trim()) return;
     setGroupSettingsError("");
@@ -460,10 +485,10 @@ export default function SettingsPage() {
 
                   <div className="flex items-center justify-between mb-4 border border-border p-3 rounded bg-bg/30">
                     <div>
-                      <label className="label-caps block mb-1">Web3 Wallet</label>
-                      <div className="font-mono text-[9px] text-muted">Connect wallet for on-chain ops</div>
+                      <label className="label-caps block mb-1">Blockchain (Optional)</label>
+                      <div className="font-mono text-[9px] text-muted">Only needed if you want optional on-chain features</div>
                     </div>
-                    <ConnectButton showBalance={false} chainStatus="none" accountStatus="avatar" />
+                    <span className="font-mono text-[10px] text-muted">Not connected</span>
                   </div>
 
                   <div>
@@ -758,6 +783,26 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   </div>
+
+                  {groupData?.canDelete && (
+                    <div className="panel p-5 bg-panel border-red/30">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="label-caps text-red mb-1">Danger Zone</h3>
+                          <p className="font-mono text-[10px] text-muted leading-relaxed">
+                            Permanently remove this group, its members, expenses, and debt history.
+                          </p>
+                        </div>
+                        <button
+                          onClick={handleDeleteGroup}
+                          disabled={groupLoading}
+                          className="border border-red text-red hover:bg-red/5 font-mono text-[10px] font-bold py-2 px-4 rounded cursor-pointer disabled:opacity-50"
+                        >
+                          DELETE GROUP
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Member Directory */}
                   <div className="panel p-5 bg-panel">

@@ -71,7 +71,7 @@ export default function LandingPage() {
           <div className="inline-flex items-center border border-red/40 bg-red/5 backdrop-blur-sm rounded-full px-4 py-1.5 mb-8 animate-fade-in-up shadow-[0_0_15px_rgba(204,0,30,0.2)]">
             <span className="w-2 h-2 rounded-full bg-red animate-pulse mr-2 shadow-[0_0_8px_#cc001e]" />
             <span className="font-mono text-[10px] sm:text-xs uppercase text-red tracking-widest font-bold">
-              LIVE &middot; ONCHAIN SETTLEMENT ENGINE
+              LIVE &middot; SHARED SETTLEMENT LEDGER
             </span>
           </div>
 
@@ -84,7 +84,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-muted text-lg md:text-xl max-w-2xl leading-relaxed mb-12 animate-fade-in-up-2">
-            Finality turns group expenses into a live dashboard instead of a forgotten IOU. Every balance visible. Every settlement onchain. Built on Monad.
+            Finality turns group expenses into a live dashboard instead of a forgotten IOU. Track balances, settle in the shared ledger, and use blockchain only when you choose.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto mb-20 animate-fade-in-up-3">
@@ -369,7 +369,7 @@ export default function LandingPage() {
                 <div className="font-mono text-red font-bold mb-3 text-lg">03</div>
                 <h3 className="font-mono font-bold uppercase tracking-widest text-white mb-3">Settle It</h3>
                 <p className="text-muted text-sm leading-relaxed">
-                  One tap sends the exact amount, wallet to wallet, onchain. Instant finality.
+                  One tap records the settlement in the shared ledger. No wallet or blockchain setup required.
                 </p>
               </div>
             </div>
@@ -406,7 +406,7 @@ export default function LandingPage() {
               <div className="bg-panel p-8">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-2 h-2 rounded-full bg-[#b8c0c2]" />
-                  <h4 className="font-mono font-semibold uppercase tracking-widest text-white text-xs">Full onchain history</h4>
+                  <h4 className="font-mono font-semibold uppercase tracking-widest text-white text-xs">Full settlement history</h4>
                 </div>
                 <p className="text-muted text-sm leading-relaxed">
                   Every log and settlement is written as a permanent record. Trustless auditability for the entire group.

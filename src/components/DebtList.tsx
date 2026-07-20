@@ -4,9 +4,6 @@ import { useState } from "react";
 import type { Member, Debt, Expense } from "@/lib/types";
 import { timeAgo, getCategoryColor, getCategoryLabel } from "@/lib/types";
 import { useAuth } from "@/lib/AuthContext";
-import { useWriteContract, useAccount } from "wagmi";
-import { parseEther } from "viem";
-import { ABI, CONTRACT_ADDRESS } from "@/lib/contract";
 
 interface Props {
   debts: Debt[];
@@ -25,48 +22,6 @@ export default function DebtList({
 }: Props) {
   const { user, formatCurrency } = useAuth();
   const [tab, setTab] = useState<"debts" | "log">("debts");
-  const { writeContractAsync } = useWriteContract();
-  const { address } = useAccount();
-  const [loggingId, setLoggingId] = useState<number | null>(null);
-
-  const handleLogDebt = async (debt: Debt, creditorWallet: string) => {
-    setLoggingId(debt.id);
-    try {
-      const hash = await writeContractAsync({
-        address: CONTRACT_ADDRESS,
-        abi: ABI,
-        functionName: 'logDebt',
-        args: [creditorWallet as `0x${string}`, parseEther(debt.amount)],
-      });
-      console.log("Tx Hash:", hash);
-      // API call to save onchainId would go here
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoggingId(null);
-    }
-  };
-
-  const handleSettleOnchain = async (debt: Debt) => {
-    onSettle(debt.id); // Triggers loading state in parent
-    if (debt.onchainId == null) {
-      console.error("No on-chain ID");
-      return;
-    }
-    try {
-      const hash = await writeContractAsync({
-        address: CONTRACT_ADDRESS,
-        abi: ABI,
-        functionName: 'settle',
-        args: [BigInt(debt.onchainId)],
-        value: parseEther(debt.amount),
-      });
-      console.log("Tx Hash:", hash);
-      // Parent should ideally wait for receipt, but for now we let it refresh
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const getMember = (id: number) => members.find((m) => m.id === id);
   const getExpense = (id: number) => expenses.find((e) => e.id === id);
@@ -182,26 +137,16 @@ export default function DebtList({
                       
                       {/* Actions */}
                       {debtor?.userId === user?.id ? (
-                        debt.onchainId != null ? (
-                          <button
-                            onClick={() => handleSettleOnchain(debt)}
-                            disabled={settlingId === debt.id}
-                            className="mt-2 w-full bg-green/10 text-green font-mono text-xs font-semibold tracking-wider uppercase py-1.5 rounded hover:bg-green/20 transition-colors disabled:opacity-50 cursor-pointer"
-                          >
-                            {settlingId === debt.id ? "SETTLING ON-CHAIN..." : "SETTLE UP (ON-CHAIN)"}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleLogDebt(debt, creditor?.wallet || "")}
-                            disabled={loggingId === debt.id}
-                            className="mt-2 w-full border border-ink text-ink font-mono text-xs font-semibold tracking-wider uppercase py-1.5 rounded hover:bg-ink hover:text-panel transition-colors disabled:opacity-50 cursor-pointer"
-                          >
-                            {loggingId === debt.id ? "LOGGING..." : "LOG DEBT ON-CHAIN"}
-                          </button>
-                        )
+                        <button
+                          onClick={() => onSettle(debt.id)}
+                          disabled={settlingId === debt.id}
+                          className="mt-2 w-full bg-green/10 text-green font-mono text-xs font-semibold tracking-wider uppercase py-1.5 rounded hover:bg-green/20 transition-colors disabled:opacity-50 cursor-pointer"
+                        >
+                          {settlingId === debt.id ? "SETTLING..." : "MARK AS SETTLED"}
+                        </button>
                       ) : (
                         <div className="mt-2 w-full text-center py-1.5 font-mono text-[10px] text-muted border border-dashed border-border rounded">
-                          {debt.onchainId != null ? "PENDING SETTLEMENT" : "AWAITING ON-CHAIN LOG"}
+                          Awaiting settlement by debtor
                         </div>
                       )}
                     </div>

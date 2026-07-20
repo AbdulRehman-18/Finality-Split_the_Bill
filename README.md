@@ -19,17 +19,42 @@
 
 ## 📡 Live Feed Operations
 
-Group expenses don't just get tracked here. They get monitored. Finality turns the passive, forgotten "I'll pay you back" into a live operational control room feed: every debt logged, every wallet balance graphed, and every settlement finalized onchain the moment it happens.
+Group expenses don't just get tracked here. They get monitored. **Finality** turns the passive, forgotten "I'll pay you back" into a live operational control room feed: every debt logged, every wallet balance graphed, and every settlement finalized onchain the moment it happens.
 
-- **Zero Escrow, Zero Pool**: Funds never sit in a smart contract. Settlement is an immediate, direct wallet-to-wallet transfer.
-- **Exact-Amount Enforcement**: The contract rejects any transaction that doesn't match the debt balance exactly. No fractional slippage, no rounding games.
-- **Force-Directed Debt Graph**: A real-time spatial graph mapping wallet addresses as nodes and debt relations as edges. Watch settlement pulses travel across the network.
+No spreadsheets. No pooled escrow. No trust required—the contract enforces the exact amount, and money moves directly between the two wallets involved.
+
+---
+
+## 🖥️ Surveillance Console
+
+Below is the live operational feed and force-directed debt network tracking credit vectors:
+
+![Finality Dashboard Console](public/dashboard.png)
+*Figure 1.0: Real-time surveillance grid mapping wallet nodes (participants) and active debt relationships (edges).*
+
+> [!TIP]
+> **Please save your dashboard screenshot as `public/dashboard.png`** to render it directly inside this console view!
+
+---
+
+## ⚡ Key Surveillance Vectors
+
+* **Spatial Debt Graph**: Nodes represent participants. Directed edges map debt vectors. The thickness corresponds to the amount owed, and the edge colors represent warning levels:
+  * <span style="color: #3b6fd6">■</span> **Blue**: Pending/Active debt.
+  * <span style="color: #1f9e5c">■</span> **Green**: Settled and confirmed onchain.
+  * <span style="color: #d98a1f">■</span> **Orange**: Warning status (overdue debt).
+  * <span style="color: #d6394a">■</span> **Red**: Critical warning status (long-overdue debt).
+* **Zero Custody**: Funds never touch a pooled contract balance—settlement is a direct `MON` transfer between wallets, enforced cryptographically by the contract.
+* **Exact-Amount Matching**: The contract rejects any transaction that does not match the debt balance to the wei. No slippage, no rounding games.
+* **Asynchronous Speed**: Powered by Monad's high-throughput execution, transactions confirm instantly, triggering immediate settlement pulses along the graph.
 
 ---
 
 ## 🛠️ System Architecture
 
-Finality uses a hybrid synchronization model. Debts are created inside group consoles, mirrored in a PostgreSQL database (via Drizzle ORM) for lighting-fast UI rendering, logged to the Monad Testnet blockchain by the debtor, and settled with native currency (`MON`) transfers.
+Finality utilizes a hybrid synchronization model:
+1. **Off-chain Cache**: A local Postgres instance synchronized via Drizzle ORM indexes metadata, groups, and membership.
+2. **Onchain Settlement**: The `LedgerWatch` smart contract acts as the source of truth for debt status and wallet-to-wallet transfers.
 
 ```mermaid
 sequenceDiagram
@@ -59,9 +84,9 @@ sequenceDiagram
 
 ---
 
-## 📦 Smart Contract Interface
+## 📦 Smart Contract Specs
 
-The core logic is deployed in `LedgerWatch.sol` and operates without owner keys or upgrade proxies. It is deterministic, immutable ledger surveillance.
+The contract operates without an owner admin key or upgrade proxy. What is deployed is what runs.
 
 ```solidity
 struct Debt {
@@ -88,17 +113,16 @@ function getDebt(uint256 id) external view returns (Debt memory);
 
 ---
 
-## ⚡ Tech Stack
+## 💻 Tech Stack Configuration
 
-| Component | Technology | Description |
+| Layer | Component | Implementation |
 |---|---|---|
-| **Frontend UI** | [Next.js](https://nextjs.org) (v16) &amp; TypeScript | High-performance React framework |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com) (v4) | Instrument-panel design token system |
-| **Web3 Engine** | [wagmi](https://wagmi.sh) &amp; [viem](https://viem.sh) | Web3 React hooks &amp; utilities |
-| **Wallet Connector** | [RainbowKit](https://www.rainbowkit.com) | Premium multi-wallet connection |
-| **Local Sandbox** | [Foundry](https://book.getfoundry.sh) | Smart contract testing and local scripting |
-| **Off-chain Cache** | [Drizzle ORM](https://orm.drizzle.team) &amp; Neon Postgres | Fast data caching and metadata tracking |
-| **Graph Visualization**| D3 Force Simulation | Force-directed nodes and settlement pulses |
+| **Core** | Frontend | Next.js (v16), React (v19) |
+| **Logic** | Language | TypeScript &amp; Solidity ^0.8.27 |
+| **Styling** | UI System | Tailwind CSS (v4) |
+| **EVM Interface** | Web3 SDK | wagmi &amp; viem &amp; RainbowKit |
+| **Foundry Tooling** | Smart Contracts | Forge test suite &amp; Deploy script |
+| **Database** | Metadata Cache | Drizzle ORM + PostgreSQL |
 
 ---
 

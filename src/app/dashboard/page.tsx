@@ -234,7 +234,7 @@ export default function Home() {
                 Split the Bill, Track Every Debt
               </p>
               <p className="font-sans text-sm text-muted mb-8 leading-relaxed">
-                Create an operations group, add members, or join using an active group access code to keep track of balances and resolve transactions on-chain.
+                Create an operations group, add members, or join using an active group access code to keep track of balances and resolve transactions in the shared ledger.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -254,37 +254,49 @@ export default function Home() {
 
               {groups.length > 0 ? (
                 <div>
-                  <h3 className="label-caps mb-3">Active Operations Groups ({groups.length})</h3>
-                  <div className="space-y-2">
-                    {groups.map((g) => (
-                      <button
-                        key={g.id}
-                        onClick={() => router.push(`/group/${g.id}`)}
-                        className="w-full panel p-4 flex items-center justify-between hover:border-ink transition-colors text-left bg-panel cursor-pointer"
-                      >
-                        <div>
-                          <div className="font-mono text-sm font-bold">
-                            {g.name}
-                          </div>
-                          <div className="label-caps mt-1">
-                            CODE: {g.code}
+                    <h3 className="label-caps mb-3">Active Operations Groups ({groups.length})</h3>
+                    <div className="space-y-2">
+                      {groups.map((g) => (
+                        <div
+                          key={g.id}
+                          className="w-full panel p-4 flex items-center justify-between gap-4 hover:border-ink transition-colors text-left bg-panel"
+                        >
+                          <button
+                            onClick={() => router.push(`/group/${g.id}`)}
+                            className="flex-1 min-w-0 text-left cursor-pointer"
+                          >
+                            <div className="font-mono text-sm font-bold truncate">
+                              {g.name}
+                            </div>
+                            <div className="label-caps mt-1">
+                              CODE: {g.code}
+                            </div>
+                          </button>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <button
+                              onClick={() => router.push(`/settings?from=/dashboard&groupId=${g.id}`)}
+                              className="font-mono text-[10px] text-blue hover:underline cursor-pointer"
+                              aria-label={`Edit ${g.name}`}
+                            >
+                              EDIT
+                            </button>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              aria-hidden="true"
+                            >
+                              <path
+                                d="M6 4l4 4-4 4"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                              />
+                            </svg>
                           </div>
                         </div>
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                        >
-                          <path
-                            d="M6 4l4 4-4 4"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
-                    ))}
+                      ))}
                   </div>
                 </div>
               ) : (

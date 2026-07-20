@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, use, useMemo } from "react";
+import { useState, useEffect, useCallback, use, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { parseEther } from "viem";
-import { useOnchainDebts } from "@/lib/useOnchainDebts";
 import MetricStrip from "@/components/MetricStrip";
 import DebtList from "@/components/DebtList";
 import ForceGraph from "@/components/ForceGraph";
@@ -32,32 +30,6 @@ export default function GroupDashboard({
   const [members, setMembers] = useState<Member[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
-  const { onchainDebts } = useOnchainDebts();
-  
-  const mappedDebts = useMemo(() => {
-    const availableOnchain = [...onchainDebts];
-    return debts.map((dbDebt) => {
-      const debtor = members.find((m) => m.id === dbDebt.debtorId);
-      const creditor = members.find((m) => m.id === dbDebt.creditorId);
-      
-      const matchIndex = availableOnchain.findIndex(od => 
-        debtor?.wallet && creditor?.wallet &&
-        od.debtor.toLowerCase() === debtor.wallet.toLowerCase() &&
-        od.creditor.toLowerCase() === creditor.wallet.toLowerCase() &&
-        od.amount === parseEther(dbDebt.amount)
-      );
-
-      if (matchIndex !== -1) {
-        const match = availableOnchain.splice(matchIndex, 1)[0];
-        return {
-          ...dbDebt,
-          onchainId: match.id,
-          settled: match.settled,
-        };
-      }
-      return dbDebt;
-    });
-  }, [debts, onchainDebts, members]);
 
   const [isMember, setIsMember] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -76,6 +48,7 @@ export default function GroupDashboard({
   const [joinLoading, setJoinLoading] = useState(false);
   const [unclaimedMembers, setUnclaimedMembers] = useState<UnclaimedMember[]>([]);
   const [joinError, setJoinError] = useState("");
+  const dataSignatureRef = useRef("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -85,12 +58,30 @@ export default function GroupDashboard({
         router.push("/dashboard");
         return;
       }
+      const nextIsMember = data.isMember !== false;
+      const nextMembers = data.members || [];
+      const nextExpenses = data.expenses || [];
+      const nextDebts = data.debts || [];
+      const signature = JSON.stringify({
+        group: data.group,
+        isMember: nextIsMember,
+        members: nextMembers,
+        expenses: nextExpenses,
+        debts: nextDebts,
+      });
+
+      // Polling is frequent enough to keep the dashboard live, but most polls
+      // return the same data. Avoid replacing arrays and re-running the graph
+      // and every derived panel when nothing actually changed.
+      if (dataSignatureRef.current === signature) return;
+      dataSignatureRef.current = signature;
+
       setGroup(data.group);
-      setIsMember(data.isMember !== false);
-      if (data.isMember !== false) {
-        setMembers(data.members || []);
-        setExpenses(data.expenses || []);
-        setDebts(data.debts || []);
+      setIsMember(nextIsMember);
+      if (nextIsMember) {
+        setMembers(nextMembers);
+        setExpenses(nextExpenses);
+        setDebts(nextDebts);
       }
     } catch {
       console.error("Failed to fetch group data");
@@ -114,12 +105,25 @@ export default function GroupDashboard({
   }, [user, fetchData]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (user && isMember) {
-      interval = setInterval(fetchData, 5000);
-    }
-    return () => {
+    if (!user || !isMember) return;
+
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const poll = () => {
+      if (document.visibilityState === "visible") fetchData();
+    };
+    const startPolling = () => {
+      if (!interval) interval = setInterval(poll, 15000);
+    };
+    const stopPolling = () => {
       if (interval) clearInterval(interval);
+      interval = undefined;
+    };
+
+    startPolling();
+    document.addEventListener("visibilitychange", poll);
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", poll);
     };
   }, [user, isMember, fetchData]);
 
@@ -379,7 +383,7 @@ export default function GroupDashboard({
       </header>
 
       {/* Metric Strip */}
-      <MetricStrip debts={mappedDebts} expenses={expenses} />
+      <MetricStrip debts={debts} expenses={expenses} />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
@@ -388,7 +392,7 @@ export default function GroupDashboard({
           activeTab === "debts" ? "flex" : "hidden lg:flex"
         }`}>
           <DebtList
-            debts={mappedDebts}
+            debts={debts}
             expenses={expenses}
             members={members}
             onSettle={handleSettle}
@@ -426,7 +430,7 @@ export default function GroupDashboard({
             {members.length > 0 ? (
               <ForceGraph
                 members={members}
-                debts={mappedDebts}
+                debts={debts}
                 recentlySettled={recentlySettled}
               />
             ) : (
@@ -468,10 +472,10 @@ export default function GroupDashboard({
           </div>
           <div className="flex-1 overflow-y-auto">
             {rightTab === "stats" ? (
-              <LedgerStats members={members} debts={mappedDebts} />
+              <LedgerStats members={members} debts={debts} />
             ) : (
               <AlertFeed
-                debts={mappedDebts}
+                debts={debts}
                 members={members}
                 expenses={expenses}
               />
@@ -490,7 +494,7 @@ export default function GroupDashboard({
               : "border-t-transparent text-muted hover:text-ink"
           }`}
         >
-          Debts ({mappedDebts.filter((d) => !d.settled).length})
+          Debts ({debts.filter((d) => !d.settled).length})
         </button>
         <button
           onClick={() => setActiveTab("network")}
@@ -521,8 +525,8 @@ export default function GroupDashboard({
             {members.length} OPERATORS
           </span>
           <span className="label-caps hidden sm:inline">
-            {mappedDebts.filter((d) => !d.settled).length} ACTIVE ·{" "}
-            {mappedDebts.filter((d) => d.settled).length} SETTLED
+            {debts.filter((d) => !d.settled).length} ACTIVE ·{" "}
+            {debts.filter((d) => d.settled).length} SETTLED
           </span>
         </div>
         <span className="label-caps hidden md:inline">

@@ -33,15 +33,19 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nodesRef = useRef<GraphNode[]>([]);
   const linksRef = useRef<GraphLink[]>([]);
+  const nodeByIdRef = useRef<Map<number, GraphNode>>(new Map());
+  const linkGroupsRef = useRef<Map<string, GraphLink[]>>(new Map());
   const animRef = useRef<number>(0);
+  const animationRunningRef = useRef(false);
   const particlesRef = useRef<
     { linkIdx: number; progress: number; speed: number }[]
   >([]);
 
   const buildGraph = useCallback(() => {
     const existingNodes = nodesRef.current;
+    const existingNodeById = new Map(existingNodes.map((node) => [node.id, node]));
     const nodes: GraphNode[] = members.map((m) => {
-      const existing = existingNodes.find((n) => n.id === m.id);
+      const existing = existingNodeById.get(m.id);
       return {
         id: m.id,
         name: m.name,
@@ -63,6 +67,18 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
 
     nodesRef.current = nodes;
     linksRef.current = links;
+    nodeByIdRef.current = new Map(nodes.map((node) => [node.id, node]));
+
+    const linkGroups = new Map<string, GraphLink[]>();
+    links.forEach((link) => {
+      const key = link.source < link.target
+        ? `${link.source}-${link.target}`
+        : `${link.target}-${link.source}`;
+      const group = linkGroups.get(key) || [];
+      group.push(link);
+      linkGroups.set(key, group);
+    });
+    linkGroupsRef.current = linkGroups;
   }, [members, debts]);
 
   useEffect(() => {
@@ -93,11 +109,12 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
     const resize = () => {
       const rect = canvas.parentElement?.getBoundingClientRect();
       if (rect) {
-        canvas.width = rect.width * window.devicePixelRatio;
-        canvas.height = rect.height * window.devicePixelRatio;
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = rect.width * pixelRatio;
+        canvas.height = rect.height * pixelRatio;
         canvas.style.width = `${rect.width}px`;
         canvas.style.height = `${rect.height}px`;
-        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
       }
     };
     resize();
@@ -110,8 +127,9 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
     }
 
     // Initialize node positions
-    const w = canvas.width / window.devicePixelRatio;
-    const h = canvas.height / window.devicePixelRatio;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const w = canvas.width / pixelRatio;
+    const h = canvas.height / pixelRatio;
     const centerX = w / 2;
     const centerY = h / 2;
 
@@ -127,11 +145,13 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
     const tick = () => {
       const nodes = nodesRef.current;
       const links = linksRef.current;
+      const nodeById = nodeByIdRef.current;
+      const linkGroups = linkGroupsRef.current;
 
       if (!ctx || !canvas) return;
 
-      const cw = canvas.width / window.devicePixelRatio;
-      const ch = canvas.height / window.devicePixelRatio;
+      const cw = canvas.width / pixelRatio;
+      const ch = canvas.height / pixelRatio;
 
       // Simple force simulation
       const alpha = 0.3;
@@ -171,8 +191,8 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
 
       // Spring force from links
       links.forEach((link) => {
-        const sourceNode = nodes.find((n) => n.id === link.source);
-        const targetNode = nodes.find((n) => n.id === link.target);
+        const sourceNode = nodeById.get(link.source);
+        const targetNode = nodeById.get(link.target);
         if (
           !sourceNode ||
           !targetNode ||
@@ -228,22 +248,10 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
         ctx.stroke();
       }
 
-      // Group links by node pairs to handle parallel edges
-      const linkGroups = new Map<string, GraphLink[]>();
-      links.forEach((link) => {
-        const pairKey =
-          link.source < link.target
-            ? `${link.source}-${link.target}`
-            : `${link.target}-${link.source}`;
-        const group = linkGroups.get(pairKey) || [];
-        group.push(link);
-        linkGroups.set(pairKey, group);
-      });
-
       // Draw edges
       links.forEach((link) => {
-        const sourceNode = nodes.find((n) => n.id === link.source);
-        const targetNode = nodes.find((n) => n.id === link.target);
+        const sourceNode = nodeById.get(link.source);
+        const targetNode = nodeById.get(link.target);
         if (
           !sourceNode ||
           !targetNode ||
@@ -347,8 +355,8 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
       particlesRef.current = particlesRef.current.filter((p) => {
         const link = links[p.linkIdx];
         if (!link) return false;
-        const sourceNode = nodes.find((n) => n.id === link.source);
-        const targetNode = nodes.find((n) => n.id === link.target);
+        const sourceNode = nodeById.get(link.source);
+        const targetNode = nodeById.get(link.target);
         if (
           !sourceNode ||
           !targetNode ||
@@ -434,14 +442,40 @@ export default function ForceGraph({ members, debts, recentlySettled }: Props) {
         ctx.fillText(node.name, node.x, node.y + 30);
       });
 
-      animRef.current = requestAnimationFrame(tick);
+      if (animationRunningRef.current) {
+        animRef.current = requestAnimationFrame(tick);
+      }
     };
 
-    animRef.current = requestAnimationFrame(tick);
+    const setAnimationState = (running: boolean) => {
+      animationRunningRef.current = running;
+      if (running && !animRef.current) {
+        animRef.current = requestAnimationFrame(tick);
+      }
+      if (!running && animRef.current) {
+        cancelAnimationFrame(animRef.current);
+        animRef.current = 0;
+      }
+    };
+
+    const updateVisibility = (isIntersecting = true) => {
+      setAnimationState(document.visibilityState === "visible" && isIntersecting);
+    };
+    const handleVisibilityChange = () => updateVisibility();
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => updateVisibility(entry.isIntersecting),
+      { threshold: 0.01 }
+    );
+    intersectionObserver.observe(canvas);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    updateVisibility();
 
     return () => {
+      animationRunningRef.current = false;
       cancelAnimationFrame(animRef.current);
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

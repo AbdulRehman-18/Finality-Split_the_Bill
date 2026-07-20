@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { groups, members, expenses, debts } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
-import { eq, and, or } from "drizzle-orm";
+import { eq, and, or, asc } from "drizzle-orm";
 
 export async function GET(
   _request: Request,
@@ -46,6 +46,15 @@ export async function GET(
       });
     }
 
+    // The creator is the first member inserted for a group. Keep deletion
+    // restricted to that operator even though all members can view it.
+    const [ownerMembership] = await db
+      .select({ userId: members.userId })
+      .from(members)
+      .where(eq(members.groupId, groupId))
+      .orderBy(asc(members.id))
+      .limit(1);
+
     // User is a member. Fetch full details.
     const groupMembers = await db
       .select()
@@ -70,6 +79,7 @@ export async function GET(
       expenses: groupExpenses,
       debts: groupDebts,
       isMember: true,
+      canDelete: ownerMembership?.userId === currentUser.id,
     });
   } catch (error) {
     console.error("Error fetching group:", error);
@@ -77,6 +87,50 @@ export async function GET(
       { error: "Failed to fetch group" },
       { status: 500 }
     );
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const currentUser = await getSessionUser();
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const groupId = parseInt(id, 10);
+    if (isNaN(groupId)) {
+      return NextResponse.json({ error: "Invalid group ID" }, { status: 400 });
+    }
+
+    const [ownerMembership] = await db
+      .select({ userId: members.userId })
+      .from(members)
+      .where(eq(members.groupId, groupId))
+      .orderBy(asc(members.id))
+      .limit(1);
+
+    if (ownerMembership?.userId !== currentUser.id) {
+      return NextResponse.json(
+        { error: "Only the group creator can delete this group" },
+        { status: 403 }
+      );
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.delete(debts).where(eq(debts.groupId, groupId));
+      await tx.delete(expenses).where(eq(expenses.groupId, groupId));
+      await tx.delete(members).where(eq(members.groupId, groupId));
+      await tx.delete(groups).where(eq(groups.id, groupId));
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting group:", error);
+    return NextResponse.json({ error: "Failed to delete group" }, { status: 500 });
   }
 }
 
