@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, members } from "@/db/schema";
-import { getSessionUser } from "@/lib/auth";
+import { clearSessionUser, getSessionUser } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
@@ -12,13 +12,28 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { displayName, wallet, color, currency, theme } = body as {
+    const { displayName, wallet, color, currency, theme, action } = body as {
       displayName?: string;
       wallet?: string;
       color?: string;
       currency?: string;
       theme?: string;
+      action?: string;
     };
+
+    if (action === "deleteAccount") {
+      // Preserve historical ledger rows by turning the user's member profiles
+      // into offline profiles before removing the referenced user row.
+      await db.transaction(async (tx) => {
+        await tx
+          .update(members)
+          .set({ userId: null })
+          .where(eq(members.userId, currentUser.id));
+        await tx.delete(users).where(eq(users.id, currentUser.id));
+      });
+      await clearSessionUser();
+      return NextResponse.json({ success: true });
+    }
 
     const updateFields: Partial<typeof users.$inferInsert> = {};
 

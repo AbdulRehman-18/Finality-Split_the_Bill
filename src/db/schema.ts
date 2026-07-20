@@ -34,7 +34,7 @@ export const members = pgTable("members", {
     .references(() => groups.id)
     .notNull(),
   userId: integer("user_id")
-    .references(() => users.id),
+    .references(() => users.id, { onDelete: "set null" }),
   name: varchar("name", { length: 255 }).notNull(),
   wallet: varchar("wallet", { length: 255 }).default(""),
   color: varchar("color", { length: 20 }).default("#3b6fd6"),

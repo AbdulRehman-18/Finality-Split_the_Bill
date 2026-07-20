@@ -355,13 +355,18 @@ export default function SettingsPage() {
       return;
     }
     try {
-      await fetch("/api/auth/settings", {
+      const res = await fetch("/api/auth/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName: "DELETED", wallet: "", color: "" }),
+        body: JSON.stringify({ action: "deleteAccount" }),
       });
-      await logout();
-      router.push("/login");
+      if (res.ok) {
+        await logout();
+        router.push("/login");
+      } else {
+        const data = await res.json();
+        setProfileError(data.error || "Failed to delete account.");
+      }
     } catch (e) {
       console.error(e);
     }
