@@ -5,7 +5,7 @@ import { Providers } from "@/lib/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tally.finality.app"),
+  metadataBase: new URL("https://tally.synore.in"),
   title: {
     default: "Tally — Onchain Debt Surveillance & Micro-Settlement Protocol",
     template: "%s | Tally Protocol",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "Cryptographic Shared Ledger",
     "Topological Rebalancing",
   ],
-  authors: [{ name: "Tally Protocol Team", url: "https://github.com/finality-app" }],
+  authors: [{ name: "Tally Protocol Team", url: "https://tally.synore.in" }],
   creator: "Tally Protocol",
   publisher: "Tally Protocol",
   icons: {
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "Tally — Every debt. Watched. Until it's paid.",
     description:
       "Continuous topological debt graph rebalancing with instant sub-second Monad EVM micro-settlements and zero custodial risk.",
-    url: "https://tally.finality.app",
+    url: "https://tally.synore.in",
     siteName: "Tally Protocol",
     images: [
       {
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     description:
       "Continuous topological debt graph rebalancing with instant sub-second Monad EVM micro-settlements.",
     images: ["/logo.png"],
-    creator: "@finality_app",
+    creator: "@synore_in",
   },
   robots: {
     index: true,
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://tally.finality.app",
+    canonical: "https://tally.synore.in",
   },
 };
 
@@ -90,14 +90,15 @@ const jsonLd = {
   },
   description:
     "Tally turns group expenses into an interactive live debt graph with parallel topological rebalancing and instant Monad EVM micro-settlements.",
-  image: "https://tally.finality.app/logo.png",
-  url: "https://tally.finality.app",
+  image: "https://tally.synore.in/logo.png",
+  url: "https://tally.synore.in",
   author: {
     "@type": "Organization",
     name: "Tally Protocol",
-    url: "https://github.com/finality-app",
+    url: "https://tally.synore.in",
   },
 };
+
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
