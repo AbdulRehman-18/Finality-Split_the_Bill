@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         username: normalizedUsername,
         displayName: displayName.trim(),
         password: password, // Plain text for demo
-        currency: "USD",
+        currency: "INR",
         theme: "default",
       })
       .returning();

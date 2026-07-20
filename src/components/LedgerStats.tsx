@@ -1,7 +1,8 @@
 "use client";
 
 import type { Member, Debt } from "@/lib/types";
-import { formatAmount, CATEGORIES, getCategoryColor } from "@/lib/types";
+import { CATEGORIES } from "@/lib/types";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Props {
   members: Member[];
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function LedgerStats({ members, debts }: Props) {
+  const { formatCurrency } = useAuth();
   // Net balance per member
   const balances = new Map<number, number>();
   members.forEach((m) => balances.set(m.id, 0));
@@ -65,31 +67,31 @@ export default function LedgerStats({ members, debts }: Props) {
           <div className="flex justify-between items-baseline">
             <span className="label-caps">Total Throughput</span>
             <span className="font-mono text-sm font-bold">
-              ${formatAmount(totalDebtAmount)}
+              {formatCurrency(totalDebtAmount)}
             </span>
           </div>
           <div className="flex justify-between items-baseline">
             <span className="label-caps">Settled Vol</span>
             <span className="font-mono text-sm font-bold text-green">
-              ${formatAmount(settledAmount)}
+              {formatCurrency(settledAmount)}
             </span>
           </div>
           <div className="flex justify-between items-baseline">
             <span className="label-caps">Unsettled Vol</span>
             <span className="font-mono text-sm font-bold text-orange">
-              ${formatAmount(unsettledAmount)}
+              {formatCurrency(unsettledAmount)}
             </span>
           </div>
           <div className="flex justify-between items-baseline">
             <span className="label-caps">Peak TX</span>
             <span className="font-mono text-sm font-bold">
-              ${formatAmount(maxDebt)}
+              {formatCurrency(maxDebt)}
             </span>
           </div>
           <div className="flex justify-between items-baseline">
             <span className="label-caps">Avg TX Size</span>
             <span className="font-mono text-sm font-bold">
-              ${formatAmount(avgDebt)}
+              {formatCurrency(avgDebt)}
             </span>
           </div>
         </div>
@@ -127,7 +129,7 @@ export default function LedgerStats({ members, debts }: Props) {
                           : "text-muted"
                       }`}
                     >
-                      {bal > 0 ? "+" : ""}${formatAmount(Math.abs(bal))}
+                      {bal > 0 ? "+" : ""}{formatCurrency(Math.abs(bal))}
                     </span>
                   </div>
                   <div className="h-1.5 bg-border rounded-full overflow-hidden">

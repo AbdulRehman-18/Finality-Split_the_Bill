@@ -1,7 +1,8 @@
 "use client";
 
 import type { Debt, Member, Expense } from "@/lib/types";
-import { formatAmount, timeAgo } from "@/lib/types";
+import { timeAgo } from "@/lib/types";
+import { useAuth } from "@/lib/AuthContext";
 
 interface Alert {
   id: string;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function AlertFeed({ debts, members, expenses }: Props) {
+  const { formatCurrency } = useAuth();
   const getMember = (id: number) => members.find((m) => m.id === id);
   const getExpense = (id: number) => expenses.find((e) => e.id === id);
 
@@ -34,7 +36,7 @@ export default function AlertFeed({ debts, members, expenses }: Props) {
       alerts.push({
         id: `settled-${d.id}`,
         type: "settled",
-        message: `${debtor?.name || "?"} settled $${formatAmount(d.amount)} with ${creditor?.name || "?"}`,
+        message: `${debtor?.name || "?"} settled ${formatCurrency(d.amount)} with ${creditor?.name || "?"}`,
         amount: d.amount,
         time: d.settledAt,
       });
@@ -102,7 +104,7 @@ export default function AlertFeed({ debts, members, expenses }: Props) {
                     <span
                       className={`font-mono text-[10px] font-bold ${style.text}`}
                     >
-                      ${formatAmount(alert.amount)}
+                      {formatCurrency(alert.amount)}
                     </span>
                     <span className="font-mono text-[10px] text-muted">
                       {timeAgo(alert.time)}

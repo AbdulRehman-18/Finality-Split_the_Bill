@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const currencySymbol = user?.currency ? (CURRENCIES[user.currency as keyof typeof CURRENCIES]?.symbol || "$") : "$";
+  const currencySymbol = user?.currency ? (CURRENCIES[user.currency as keyof typeof CURRENCIES]?.symbol || "₹") : "₹";
 
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === "string" ? parseFloat(amount) : amount;

@@ -16,7 +16,7 @@ export const users = pgTable("users", {
   password: varchar("password", { length: 255 }).notNull(),
   wallet: varchar("wallet", { length: 255 }).default(""),
   color: varchar("color", { length: 20 }).default("#3b6fd6"),
-  currency: varchar("currency", { length: 10 }).default("USD").notNull(),
+  currency: varchar("currency", { length: 10 }).default("INR").notNull(),
   theme: varchar("theme", { length: 20 }).default("default").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
